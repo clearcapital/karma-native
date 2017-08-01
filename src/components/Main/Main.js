@@ -52,13 +52,13 @@ class MainComponent extends Component {
     return (
       <View style={this.styles.container}>
         <View style={{display: 'flex', flexDirection: 'column'}}>
-          {/* <Button cb={() => { navigate('Camera') }}>Camera</Button>
+          <Button cb={() => { navigate('Camera') }}>Camera</Button>
           <Button cb={() => { navigate('PhotosViewer') }}>PhotosViewer</Button>
           <Button cb={this.goPlaces}>Web App</Button>
           <Button cb={() => { navigate('TestFloorPlans') }}>Floorplans</Button>
           <Button cb={() => { navigate('TestRooms') }}>Rooms</Button>
           <Button cb={() => { navigate('TestCaptures') }}>Captures</Button>
-          <Button cb={() => { navigate('TestHotspots') }}>Hotspots</Button> */}
+          <Button cb={() => { navigate('TestHotspots') }}>Hotspots</Button>
         </View>
       </View>
     )
