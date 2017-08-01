@@ -1,0 +1,9 @@
+bin
+node_modules
+src/libs
+templates
+data
+coverage
+src/webapp/dist
+ios
+android

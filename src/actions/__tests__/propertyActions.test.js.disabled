@@ -1,0 +1,165 @@
+// imported from @ThomasHodges' code base
+
+import * as actions from '../propertyActions'
+import * as types from '../../constants/actionTypes'
+import * as testUtils from '../../../tests/testUtils'
+import nock from 'nock'
+// actions
+import * as floorplanActions from '../floorplanActions'
+import * as roomActions from '../roomActions'
+import * as appActions from '../appActions'
+import * as propertiesActions from '../propertiesActions'
+// models
+import Floorplan from '../../models/Floorplan'
+import Room from '../../models/Room'
+
+describe('appActions', () => {
+  it('should be true', () => {
+    expect(true).toBe(true)
+  })
+  // simple constants
+  const expectedId = 'cabbage'
+  const expectedNewRoute = '/overview'
+  // basic objects
+  const expectedFloorPlan = new Floorplan()
+  const expectedFloorPlans = [expectedFloorPlan]
+  const expectedRoom = new Room()
+  const expectedRooms = [expectedRoom]
+  // returned actions
+  const expectedNewLocalProperty = propertiesActions.newLocalProperty(expectedId)
+  const expectedPropertyIdAction = {type: types.PROPERTY_ID, payload: expectedId}
+  const expectedSetFloorPlans = floorplanActions.setFloorPlans(expectedFloorPlans)
+  const expectedSetActiveFloorplan = floorplanActions.setActiveFloorPlan(expectedFloorPlans[0].id)
+  const expectedSetRooms = roomActions.setRooms(expectedRooms)
+  const expectedNewFloorPlan = floorplanActions.newFloorPlan()
+  const expectedDeleteLocalProperty = propertiesActions.deleteLocalProperty(expectedId)
+  const expectedSaveState = appActions.saveState()
+  const expectedChangeRoute = appActions.changeRoute(expectedNewRoute)
+  /////NEW PROPERTY/////
+  describe('newProperty', () => { // unfinished
+    it('should add property to available properties list and update property id', () => {
+      const mStore = testUtils.mockStore({})
+      const expectedActions = [
+        expectedNewLocalProperty,
+        expectedPropertyIdAction,
+        [
+          expectedSetFloorPlans,
+          expectedSetRooms,
+          expectedNewFloorPlan,
+          expectedSaveState
+        ],
+        expectedChangeRoute
+      ]
+      nock('http://192.168.1.1')
+        .filteringPath(path => '/properties')
+        .post('/properties')
+        .reply(200, {
+          floorplans: expectedFloorPlans,
+          rooms: expectedRooms,
+          id: expectedId
+        })
+      return mStore.dispatch(actions.newProperty()).then(() => {
+        expect(mStore.getActions()).toEqual(expectedActions)
+      })
+    })
+  })
+  /////LOAD PROPERTY/////
+  describe('loadProperty', () => {
+    it('should load property with given propertyId and set as active', () => {
+      const mStore = testUtils.mockStore({})
+      const expectedActions = [
+        {type: types.PROPERTY_ID, payload: expectedId},
+        expectedSetFloorPlans,
+        expectedSetRooms,
+        expectedSetActiveFloorplan,
+        expectedChangeRoute
+      ]
+      nock('http://192.168.1.1')
+        .filteringPath(path => { '/properties/' + expectedId })
+        .get('/properties/' + expectedId)
+        .reply(200, {
+          floorplans: expectedFloorPlans,
+          rooms: expectedRooms,
+          id: expectedId
+        })
+      return mStore.dispatch(actions.loadProperty(expectedId)).then(() => {
+        expect(mStore.getActions()).toEqual(expectedActions)
+      })
+    })
+    it('should load property with given propertyId and add a new floorplan to an empty set', () => {
+      const mStore = testUtils.mockStore({})
+      const expectedActions = [
+        {type: types.PROPERTY_ID, payload: expectedId},
+        expectedSetFloorPlans,
+        expectedSetRooms,
+        [
+          expectedNewFloorPlan,
+          expectedSaveState
+        ],
+        expectedChangeRoute
+      ]
+      nock('http://192.168.1.1')
+        .filteringPath(path => '/properties/' + expectedId)
+        .get('/properties/' + expectedId)
+        .reply(200, {
+          floorplans: {},
+          rooms: expectedRooms,
+          id: expectedId
+        })
+      return mStore.dispatch(actions.loadProperty(expectedId)).then(() => {
+        expect(mStore.getActions()).toEqual(expectedActions)
+      })
+    })
+  })
+  /////DOWNLOAD PROPERTY/////
+  describe('downloadProperty', () => {
+    it('should download a property of a given id and alert when finished', () => {
+      const mStore = testUtils.mockStore({})
+      const expectedActions = [
+        {type: types.ADD_LOCAL_PROPERTY, payload: expectedId},
+        {type: types.PROPERTY_XFER_COMPLETE, payload: expectedId}
+      ]
+      nock('http://192.168.1.1')
+        .filteringPath(path => '/cloud/' + expectedId)
+        .get('/cloud/' + expectedId)
+        .reply(200, {})
+      return mStore.dispatch(actions.downloadProperty(expectedId)).then(() => {
+        expect(mStore.getActions()).toEqual(expectedActions)
+      })
+    })
+  })
+  /////UPLOAD PROPERTY/////
+  describe('uploadProperty', () => {
+    it('should upload a property of a given id and alert when finished', () => {
+      const mStore = testUtils.mockStore({})
+      const expectedActions = [
+        {type: types.PROPERTY_XFER_COMPLETE, payload: expectedId},
+        {type: types.DELETE_LOCAL_PROPERTY, payload: expectedId},
+        {type: types.ADD_CLOUD_PROPERTIES, payload: expectedId}
+      ]
+      nock('http://192.168.1.1')
+        .filteringPath(path => '/cloud/' + expectedId)
+        .post('/cloud/' + expectedId)
+        .reply(200, {})
+      return mStore.dispatch(actions.uploadProperty(expectedId)).then(() => {
+        expect(mStore.getActions()).toEqual(expectedActions)
+      })
+    })
+  })
+  /////DELETE PROPERTY/////
+  describe('deleteProperty', () => {
+    it('should delete a property of a given id', () => {
+      const mStore = testUtils.mockStore({})
+      const expectedActions = [
+        expectedDeleteLocalProperty
+      ]
+      nock('http://192.168.1.1')
+        .filteringPath(path => '/properties/' + expectedId)
+        .delete('/properties/' + expectedId)
+        .reply(200, {})
+      return mStore.dispatch(actions.deleteProperty(expectedId)).then(() => {
+        expect(mStore.getActions()).toEqual(expectedActions)
+      })
+    })
+  })
+})
