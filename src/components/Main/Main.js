@@ -13,7 +13,7 @@ import {
   TestRooms,
   TestScreenShots
 } from '../TestView'
-// import WebApp from '../WebApp'
+import WebApp from '../WebApp'
 import Camera from '../Camera'
 import PhotosViewer from '../PhotosViewer'
 // import {propertyStore} from '../../services/localStorage'
@@ -67,7 +67,7 @@ class MainComponent extends Component {
 
 const Main = StackNavigator({
   Home: {screen: MainComponent},
-  // WebApp: {screen: WebApp},
+  WebApp: {screen: WebApp},
   Camera: {screen: Camera},
   PhotosViewer: {screen: PhotosViewer},
   TestCaptures: {screen: TestCaptures},
